@@ -37,27 +37,31 @@ def token_required(f):
 def signup():
   data = request.get_json()
 
-  # Validate email and phone number
   if not EMAIL_REGEX.match(data['email']):
     return jsonify({'message': 'Invalid email address'}), 400
-  if not PHONE_REGEX.match(data['phone_number']):
-    return jsonify({'message': 'Invalid phone number'}), 400
   
+  phone_number = data.get('phone_number')
+  if phone_number and not PHONE_REGEX.match(phone_number):
+    return jsonify({'message': 'Invalid phone number'}), 400
+
   # Check if user already exists
-  existing_user = User.query.filter((User.username == data['username']) | (User.email == data['email'])).first()
+  existing_user_query = User.query.filter(User.email == data['email'])
+  if phone_number:
+    existing_user_query = existing_user_query.filter(User.phone_number == phone_number)
+
+  existing_user = existing_user_query.first()
   if existing_user:
-    return make_response('User already exists', 409)  # 409 Conflict
+    return jsonify({'message': 'User with given email or phone number already exists'}), 409
 
   hashed_password = User.hash_password(data['password'])
-  new_user = User(username=data['username'], email=data['email'], password_hash=hashed_password, phone_number=data['phone_number'])
+  new_user = User(username=data['username'], email=data['email'], phone_number=phone_number, password_hash=hashed_password)
   
   db.session.add(new_user)
   db.session.commit()
-
   # Create a token for the new user
   token = jwt.encode({
-      'user_id': new_user.id,
-      'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=5)  # Token expires in 1 hour
+    'user_id': new_user.id,
+    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=5)  # Token expires in 1 hour
   }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
   return jsonify({'message': 'Registered successfully', 'token': token}), 201
