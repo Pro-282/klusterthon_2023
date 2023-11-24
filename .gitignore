@@ -1,0 +1,6 @@
+.env
+/instance/
+env/
+old_migration/
+__pycache__/
+*.pyc
