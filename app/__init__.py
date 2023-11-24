@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
+from flask_cors import CORS
 
 db = SQLAlchemy()
 
@@ -14,7 +15,7 @@ def create_app(config_name):
   app.config['SQLALCHEMY_POOL_SIZE'] = 10
   app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30
   app.config['SQLALCHEMY_POOL_RECYCLE'] = 1800
-
+  CORS(app)
 
   db.init_app(app)
   migrate = Migrate(app, db)
