@@ -58,32 +58,49 @@ def signup():
   
   db.session.add(new_user)
   db.session.commit()
+
+  new_user_data = {
+    'id': new_user.id,
+    'username': new_user.username,
+    'email': new_user.email,
+    'phone_number': new_user.phone_number,
+    'profile_pic': new_user.profile_pic
+  }
+
   # Create a token for the new user
   token = jwt.encode({
-    'user_id': new_user.id,
+    'user_id': str(new_user.id),
     'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=5)  # Token expires in 1 hour
   }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-  return jsonify({'message': 'Registered successfully', 'token': token}), 201
+  return jsonify({'message': 'Registered successfully', 'token': token, 'user': new_user_data}), 201
 
 @auth_blueprint.route('/login', methods=['POST'])
 def login():
   auth = request.authorization
 
   if not auth or not auth.username or not auth.password:
-    return make_response('Could not verify', 401, {'WWW-Authenticate': 'Basic realm="Login required!"'})
+    return make_response('you don code beans 😂', 401, {'WWW-Authenticate': 'Basic realm="Login required!"'})
 
   user = User.query.filter((User.username == auth.username) | (User.email == auth.username)).first()
 
   if not user:
-    return make_response('Could not verify', 401, {'WWW-Authenticate': 'Basic realm="Login required!"'})
+    return make_response('user account does not exist', 401, {'WWW-Authenticate': 'Basic realm="Login required!"'})
+  
+  user_data = {
+    'id': user.id,
+    'username': user.username,
+    'email': user.email,
+    'phone_number': user.phone_number,
+    'profile_pic': user.profile_pic
+  }
 
   if user.check_password(auth.password):
     token = jwt.encode({
-      'user_id': user.id,
+      'user_id':str(user.id),
       'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=5)  # Token expires in 1 hour
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-    return jsonify({'token': token})
+    return jsonify({'token': token, 'user': user_data})
 
-  return make_response('Could not verify', 401, {'WWW-Authenticate': 'Basic realm="Login required!"'})
+  return make_response('Incorrect password', 401, {'WWW-Authenticate': 'Basic realm="Login required!"'})
