@@ -64,7 +64,10 @@ def signup():
     'username': new_user.username,
     'email': new_user.email,
     'phone_number': new_user.phone_number,
-    'profile_pic': new_user.profile_pic
+    'profile_pic': new_user.profile_pic,
+    'peer_id': new_user.peer_id,
+    'is_online': new_user.is_online,
+    'language': new_user.language
   }
 
   # Create a token for the new user
@@ -92,7 +95,10 @@ def login():
     'username': user.username,
     'email': user.email,
     'phone_number': user.phone_number,
-    'profile_pic': user.profile_pic
+    'profile_pic': user.profile_pic,
+    'peer_id': user.peer_id,
+    'is_online': user.is_online,
+    'language': user.language
   }
 
   if user.check_password(auth.password):

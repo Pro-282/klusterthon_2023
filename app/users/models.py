@@ -14,6 +14,9 @@ class User(db.Model):
   password_hash = db.Column(db.String(128), nullable=False)
   phone_number = db.Column(db.Integer, unique=True, nullable=True)
   profile_pic = db.Column(db.String)
+  peer_id = db.Column(db.String(128), nullable=True)
+  is_online = db.Column(db.Boolean, default=False, nullable=True)
+  language = db.Column(db.String(50),default='english', nullable=False)
 
   @staticmethod
   def hash_password(password):
