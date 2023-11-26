@@ -19,15 +19,16 @@ def handle_connect():
   try:
     data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
   except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-    disconnect()
-    return
+    print("jwt token not found")
+    # disconnect()
+    # return
   
   user_id = data['user_id']
   session_id = request.sid 
   connected_users[user_id] = session_id
   user = User.query.filter((User.id == user_id)).first()
 
-  emit('connected', {'message': f"user {user.username} has connected", 'user_id': user.id}, broadcast=True)
+  emit('connected', {'message': f"user {user.username} has connected", 'user_id': user.id})
 
 @socketio.on("disconnect")
 def disconnected():
