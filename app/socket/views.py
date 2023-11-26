@@ -19,16 +19,16 @@ def handle_connect():
   try:
     data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
   except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-    print("jwt token not found")
-    # disconnect()
-    # return
+    emit('disconnected', 'Token expired, Login again.', to=request.sid)
+    disconnect()
+    return
   
   user_id = data['user_id']
   session_id = request.sid 
   connected_users[user_id] = session_id
   user = User.query.filter((User.id == user_id)).first()
 
-  emit('connected', {'message': f"user {user.username} has connected", 'user_id': user.id})
+  emit('connected', {'message': f"{user.username} has connected!", 'user_id': str(user.id)}, broadcast = True)
 
 @socketio.on("disconnect")
 def disconnected():
@@ -37,11 +37,7 @@ def disconnected():
   
   user = User.query.filter((User.id == user_id)).first()
 
-  emit("disconnected", {'message': f"user {user.username} has disconnected", 'user_id': user.id}, broadcast=True)
-
-@socketio.on('data')
-def handle_message(data):
-  emit("data",{'data':data,'id':request.sid},broadcast=True) #? this method is for emitting json doc
+  emit("disconnected", {'message': f"{user.username} has disconnected!", 'user_id': str(user.id)}, broadcast=True)
 
 @socketio.on('peer_id')
 def handle_user_peer(peer_id):
@@ -51,8 +47,9 @@ def handle_user_peer(peer_id):
   user.peer_id = peer_id
   user.is_online = True
   db.session.commit()
+
   #todo: and broadcast to everyone that the user's username is online
-  emit("user_online", f"{user.username} is online", broadcast=True)
+  emit("user_online", {'message': f"{user.username} is online", 'user_id': str(user.id)}, broadcast=True)
 
 @socketio.on('make_call')
 def handle_user_call(recipient_user_id):
