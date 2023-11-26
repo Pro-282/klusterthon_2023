@@ -73,7 +73,7 @@ def signup():
   # Create a token for the new user
   token = jwt.encode({
     'user_id': str(new_user.id),
-    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=5)  # Token expires in 1 hour
+    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)  # Token expires in 1 hour
   }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
   return jsonify({'message': 'Registered successfully', 'token': token, 'user': new_user_data}), 201
@@ -104,7 +104,7 @@ def login():
   if user.check_password(auth.password):
     token = jwt.encode({
       'user_id':str(user.id),
-      'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=5)  # Token expires in 1 hour
+      'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)  # Token expires in 1 hour
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
     return jsonify({'token': token, 'user': user_data})
