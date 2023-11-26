@@ -27,7 +27,7 @@ def handle_connect():
   connected_users[user_id] = session_id
   user = User.query.filter((User.id == user_id)).first()
 
-  emit('connect', f"user {user.username} has connected", broadcast=True)
+  emit('connected', {'message': f"user {user.username} has connected", 'user_id': user.id}, broadcast=True)
 
 @socketio.on("disconnect")
 def disconnected():
@@ -36,7 +36,7 @@ def disconnected():
   
   user = User.query.filter((User.id == user_id)).first()
 
-  emit("disconnect",f"user {user.username} has disconnected", broadcast=True)
+  emit("disconnected", {'message': f"user {user.username} has disconnected", 'user_id': user.id}, broadcast=True)
 
 @socketio.on('data')
 def handle_message(data):

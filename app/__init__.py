@@ -32,7 +32,7 @@ def create_app(config_name):
   # from app.users import users_blueprint
   app.register_blueprint(health_blueprint)
   app.register_blueprint(auth_blueprint, url_prefix='/api/auth')
-  app.register_blueprint(socket_blueprint, url_prefix='/api/socket')
+  app.register_blueprint(socket_blueprint, url_prefix='/')
   # app.register_blueprint(users_blueprint)
 
   with app.app_context():
