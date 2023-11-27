@@ -11,6 +11,6 @@ def process_audio(audio_blob, user_id):
     file.write(audio_blob)
 
   # Re-encode audio using ffmpeg
-  ffmpeg.input(input_filename).output(output_filename).run()
+  ffmpeg.input(input_filename).output(output_filename).run(loglevel='info')
 
   return input_filename, output_filename
