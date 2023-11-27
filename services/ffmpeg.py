@@ -3,7 +3,7 @@ import uuid
 
 def process_audio(audio_blob, user_id):
   # Create unique filenames
-  input_filename = f"{user_id}_{uuid.uuid4()}.m4a"
+  input_filename = f"{user_id}_{uuid.uuid4()}.mp3"
   output_filename = f"{user_id}_{uuid.uuid4()}.mp3"
 
   # Write the audio blob to a file

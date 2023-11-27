@@ -54,7 +54,7 @@ def signup():
     return jsonify({'message': 'User with given email or phone number already exists'}), 409
 
   hashed_password = User.hash_password(data['password'])
-  new_user = User(username=data['username'], email=data['email'], phone_number=phone_number, password_hash=hashed_password)
+  new_user = User(username=data['username'], email=data['email'], phone_number=phone_number, password_hash=hashed_password, language=data['language'])
   
   db.session.add(new_user)
   db.session.commit()
