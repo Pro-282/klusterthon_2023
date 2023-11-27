@@ -56,7 +56,7 @@ def handle_user_peer(peer_id):
     db.session.commit()
 
     user_data = {
-    'id': user.id,
+    'id': str(user.id),
     'username': user.username,
     'email': user.email,
     'phone_number': user.phone_number,
@@ -70,67 +70,37 @@ def handle_user_peer(peer_id):
   else:
     emit("error", "Your peer_id wasn't supplied. You might want to refresh your page.", to=request.sid)
 
-@socketio.on('make_call')
-def handle_user_call(recipient_user_id):
-  caller_user_id = get_user_id_from_session_id(request.sid)
-  caller_user = User.query.filter((User.id == caller_user_id)).first()
+# @socketio.on('make_call')
+# def handle_user_call(recipient_user_id):
+#   caller_user_id = get_user_id_from_session_id(request.sid)
+#   caller_user = User.query.filter((User.id == caller_user_id)).first()
 
-  recipient_session_id = get_session_id_from_user_id(recipient_user_id)
-  recipient_user = User.query.filter((User.id == recipient_user_id)).first()
-  recipient_language = recipient_user.language
+#   recipient_session_id = get_session_id_from_user_id(recipient_user_id)
+#   recipient_user = User.query.filter((User.id == recipient_user_id)).first()
+#   recipient_language = recipient_user.language
 
-  # store a map of callers to their recipient
-  callers_and_recipients[caller_user.id] = recipient_user.id
+#   # store a map of callers to their recipient
+#   callers_and_recipients[caller_user.id] = recipient_user.id
 
   
-  #todo: to caller
-  emit("call_begin")
+#   #todo: to caller
+#   emit("call_begin")
 
-  #todo: to recipient
-  #! todo: send a 'calls can start, in text mode' message to the recepient ses_id room
-  emit("call_begin", {'message': 'call translation in text mode'}, to=request.sid)
-
-
-#todo: you need to handle an event from the receipient too to confirm the caller and send a call can start message too
-@socketio.on('receive_call')
-def handle_receipient_call(caller_user_id):
-  #todo: check if their details are in the callers_and_receipient map
-  if get_user_id_from_session_id(request.sid) == check_for_caller_and_recipient_id(caller_user_id):
-    #todo: if yes send a 'calls can start, in text mode' message to the caller and recipient ses_id room
-    pass
-  else:
-    #todo: if no send an error to the client(to destroy the call and start again)
-    pass
+#   #todo: to recipient
+#   #! todo: send a 'calls can start, in text mode' message to the recepient ses_id room
+#   emit("call_begin", {'message': 'call translation in text mode'}, to=request.sid)
 
 
-#todo: handle an event to receive audio chunks from both callers, send it over to ffmpeg to reencode it 
-#todo: send the reencoded audio to openai, along side a prompt of the previously translated texts for context purpose
-#todo: and send the full text to the client. that way, we can maintain consistency despite translating chunk by chunk
-# @socketio.on('audio_chunks')
-# def handle_audio_chunks(data):
-#   audio_blob = data
-#   user_id = get_user_id_from_session_id(request.sid)
-#   user = User.query.filter((User.id == user_id)).first()
-
-#   input_filename, output_filename = process_audio(audio_blob, user_id)
-#   transcribed_text = transcribe_audio_to_english(output_filename)
-#   translated_text = translate_text(transcribed_text, )
-
-#   translated_text = translate_text(transcribed_text, user.language, previous_translations.get(user_id, ""))
-
-#   # Update context for the user
-#   previous_translations[user_id] = translated_text
-
-#   recipient_user_id = find_caller_pair(callers_and_recipients, user_id)
-
-#   recipient_session_id = get_session_id_from_user_id(recipient_user_id)  
-
-#   # Send translated text back to the other recipient
-#   emit('translated_text', translate_text, to=recipient_session_id)
-
-#   # Clean up audio files
-#   os.remove(input_filename)
-#   os.remove(output_filename)
+# #todo: you need to handle an event from the receipient too to confirm the caller and send a call can start message too
+# @socketio.on('receive_call')
+# def handle_receipient_call(caller_user_id):
+#   #todo: check if their details are in the callers_and_receipient map
+#   if get_user_id_from_session_id(request.sid) == check_for_caller_and_recipient_id(caller_user_id):
+#     #todo: if yes send a 'calls can start, in text mode' message to the caller and recipient ses_id room
+#     pass
+#   else:
+#     #todo: if no send an error to the client(to destroy the call and start again)
+#     pass
 
 @socketio.on('audio_chunks')
 def handle_audio_blobs(blob):
