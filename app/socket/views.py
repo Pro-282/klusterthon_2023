@@ -28,7 +28,7 @@ def handle_connect():
   connected_users[user_id] = session_id
   user = User.query.filter((User.id == user_id)).first()
 
-  emit('connected', {'message': f"{user.username} has connected!", 'user_id': str(user.id)}, broadcast = True)
+  emit('connected', {'message': f"{user.username} has connected!", 'user_id': str(user.id)}, to=request.sid)
 
 @socketio.on("disconnect")
 def disconnected():
@@ -36,37 +36,48 @@ def disconnected():
   connected_users.pop(user_id, None)
   
   user = User.query.filter((User.id == user_id)).first()
+  
+  user.is_online = False
+  user.peer_id = ""
+  db.session.commit()
 
-  emit("disconnected", {'message': f"{user.username} has disconnected!", 'user_id': str(user.id)}, broadcast=True)
+  emit("disconnected", {'message': f"{user.username} has disconnected!", 'user_id': str(user.id)}, to=request.sid)
+
+  emit("user_online", {'message': f"{user.username} is offline", 'user_id': str(user.id)})
 
 @socketio.on('peer_id')
 def handle_user_peer(peer_id):
   user_id = get_user_id_from_session_id(request.sid)
-  #todo: implement adding the peer_id to the user's db making the is_online true for the user
+  # adding the peer_id to the user's db making the is_online true for the user
   user = User.query.filter((User.id == user_id)).first()
-  user.peer_id = peer_id
-  user.is_online = True
-  db.session.commit()
+  if peer_id != "":
+    user.peer_id = peer_id
+    user.is_online = True
+    db.session.commit()
 
-  #todo: and broadcast to everyone that the user's username is online
-  emit("user_online", {'message': f"{user.username} is online", 'user_id': str(user.id)}, broadcast=True)
+    emit("user_online", {'message': f"{user.username} is online", 'user_id': str(user.id)}, broadcast=True)
+  else:
+    emit("error", "Your peer_id wasn't supplied. You might want to refresh your page.", to=request)
 
 @socketio.on('make_call')
 def handle_user_call(recipient_user_id):
   caller_user_id = get_user_id_from_session_id(request.sid)
   caller_user = User.query.filter((User.id == caller_user_id)).first()
 
-  #todo: get callee's session_id so that translated text can be sent to him directly
   recipient_session_id = get_session_id_from_user_id(recipient_user_id)
-  #todo: send a translated text to the other caller
   recipient_user = User.query.filter((User.id == recipient_user_id)).first()
-
   recipient_language = recipient_user.language
 
-  #? store a map of callers to their recipient
+  # store a map of callers to their recipient
   callers_and_recipients[caller_user.id] = recipient_user.id
 
+  
+  #todo: to caller
+  emit("call_begin")
+
+  #todo: to recipient
   #! todo: send a 'calls can start, in text mode' message to the recepient ses_id room
+  emit("call_begin", {'message': 'call translation in text mode'}, to=request.sid)
 
 
 #todo: you need to handle an event from the receipient too to confirm the caller and send a call can start message too
@@ -110,6 +121,26 @@ def handle_audio_chunks(data):
   os.remove(input_filename)
   os.remove(output_filename)
 
+
+@socketio.on('audio_chunks_2')
+def handle_audio_blobs(blob):
+  audio_blob = blob
+  user_id = get_user_id_from_session_id(request.sid)
+  user = User.query.filter((User.id == user_id)).first()
+
+  input_filename, output_filename = process_audio(audio_blob, user_id)
+  transcribed_text = transcribe_audio_to_english(output_filename)
+  translated_text = translate_text(transcribed_text, )
+
+  translated_text = translate_text(transcribed_text, user.language, previous_translations.get(user_id, ""))
+
+  # Update context for the user
+  previous_translations[user_id] = translated_text
+
+  emit('translated_text', translated_text, to=request.sid)
+
+  os.remove(input_filename)
+  os.remove(output_filename)
 
 def get_user_id_from_session_id(session_id):
   for user_id, sid in connected_users.items():

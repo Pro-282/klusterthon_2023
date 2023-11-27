@@ -18,10 +18,11 @@ def transcribe_audio_to_english(audio_file_name, user_id):
   # Return the transcribed text
   return transcript
 
-def translate_text(text, target_language, user_id):
-  previous_text = previous_translations[user_id]
-  # Combine context with new text
-  combined_text = previous_text + " " + text
+def translate_text(text, target_language, user_id, context=True):
+  if context:
+    previous_text = previous_translations[user_id]
+    # Combine context with new text
+    combined_text = previous_text + " " + text
   
   response = client.chat.completions.create(
     model="gpt-3.5-turbo",
@@ -30,4 +31,4 @@ def translate_text(text, target_language, user_id):
     ],
     temperature=0
   )
-  return response['choices'][0]['message']['content']
+  return str(response['choices'][0]['message']['content'])
