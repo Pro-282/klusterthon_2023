@@ -9,7 +9,6 @@ def process_audio(audio_blob, user_id):
   # Write the audio blob to a file
   with open(input_filename, 'wb') as file:
     file.write(audio_blob)
-    print(file.read(100))
 
   # Re-encode audio using ffmpeg
   ffmpeg.input(input_filename).output(output_filename).run()
