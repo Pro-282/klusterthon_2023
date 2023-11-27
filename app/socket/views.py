@@ -109,7 +109,7 @@ def handle_audio_blobs(blob):
   user = User.query.filter((User.id == user_id)).first()
 
   input_filename, output_filename = process_audio(audio_blob, user_id)
-  transcribed_text = transcribe_audio_to_english(output_filename, user_id)
+  transcribed_text = transcribe_audio_to_english(input_filename, user_id)
 
   translated_text = translate_text(transcribed_text, user.language, user_id)
 
