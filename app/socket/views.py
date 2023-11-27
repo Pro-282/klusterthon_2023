@@ -104,6 +104,7 @@ def handle_user_peer(peer_id):
 
 @socketio.on('audio_chunks')
 def handle_audio_blobs(blob):
+  print(blob)
   audio_blob = blob
   user_id = get_user_id_from_session_id(request.sid)
   user = User.query.filter((User.id == user_id)).first()
@@ -121,6 +122,10 @@ def handle_audio_blobs(blob):
   os.remove(input_filename)
   os.remove(output_filename)
 
+
+@socketio.on('end_call')
+def handle_end_call(blob):
+  pass
 
 def get_user_id_from_session_id(session_id):
   for user_id, sid in connected_users.items():
