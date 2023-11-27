@@ -3,8 +3,8 @@ import uuid
 
 def process_audio(audio_blob, user_id):
   # Create unique filenames
-  input_filename = f"{user_id}_{uuid.uuid4()}.mp3"
-  output_filename = f"{user_id}_{uuid.uuid4()}.mp3"
+  input_filename = f"{user_id}_{uuid.uuid4()}.webm"
+  output_filename = f"{user_id}_{uuid.uuid4()}.wemb"
 
   # Write the audio blob to a file
   with open(input_filename, 'wb') as file:
