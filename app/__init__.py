@@ -18,7 +18,7 @@ def create_app(config_name):
   app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30
   app.config['SQLALCHEMY_POOL_RECYCLE'] = 1800
 
-  CORS(app, resources=[r'/api/*', r'/*', r'/socket.io/'], origins=["http://localhost:5173/", "https://callee.vercel.app/"])
+  CORS(app, resources=[r'/api/*', r'/*', r'/socket.io/'], origins=["http://localhost:5173/*", "https://callee.vercel.app/*"])
 
   db.init_app(app)
   migrate = Migrate(app, db)
