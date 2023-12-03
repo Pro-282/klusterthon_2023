@@ -118,13 +118,14 @@ def handle_audio_blobs(blob, user):
 
   user_id = user.get('id')
   user_name = user.get('username')
+  user_language = user.get('language')
 
   input_filename = process_audio(audio_blob, user_id)
   transcribed_text = transcribe_audio_to_english(input_filename, user_id)
   os.remove(input_filename)
   print(f"Transcribed text for {user_name}: ", transcribed_text)
 
-  translated_text = translate_text(transcribed_text, user.language, user_id)
+  translated_text = translate_text(transcribed_text, user_language, user_id)
   print(f"translated text for {user_name}: ", translate_text)
 
   # Update context of the transcribed text of the user
