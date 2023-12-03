@@ -4,7 +4,7 @@ from app import socketio, db
 import jwt
 from app.users.models import User
 from services.ffmpeg import process_audio
-from services.openai import previous_transcribes, transcribe_audio_to_english, translate_text
+from services.openai import transcribe_audio_to_english, translate_text
 import os, threading
 
 socket_blueprint = Blueprint('socket', __name__)
