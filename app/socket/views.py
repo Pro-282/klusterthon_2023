@@ -70,6 +70,12 @@ def handle_user_peer(peer_id):
   else:
     emit("error", "Your peer_id wasn't supplied. You might want to refresh your page.", to=request.sid)
 
+
+@socketio.on('user_offline')
+def handle_user_offline():
+  pass
+
+
 # @socketio.on('make_call')
 # def handle_user_call(recipient_user_id):
 #   caller_user_id = get_user_id_from_session_id(request.sid)
@@ -108,8 +114,8 @@ def handle_audio_blobs(blob):
   user_id = get_user_id_from_session_id(request.sid)
   user = User.query.filter((User.id == user_id)).first()
 
-  input_filename, output_filename = process_audio(audio_blob, user_id)
-  transcribed_text = transcribe_audio_to_english(output_filename, user_id)
+  input_filename = process_audio(audio_blob, user_id)
+  transcribed_text = transcribe_audio_to_english(input_filename, user_id)
 
   translated_text = translate_text(transcribed_text, user.language, user_id)
 
@@ -119,7 +125,7 @@ def handle_audio_blobs(blob):
   emit('translated_text', translated_text, to=request.sid)
 
   os.remove(input_filename)
-  os.remove(output_filename)
+  # os.remove(output_filename)
 
 
 @socketio.on('end_call')
