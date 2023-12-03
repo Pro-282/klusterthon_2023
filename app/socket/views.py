@@ -109,18 +109,23 @@ def handle_user_offline():
 #     pass
 
 @socketio.on('audio_chunks')
-def handle_audio_blobs(blob):
+def handle_audio_blobs(blob, user):
   audio_blob = blob
-  user_id = get_user_id_from_session_id(request.sid)
-  user = User.query.filter((User.id == user_id)).first()
+  # user_id = get_user_id_from_session_id(request.sid)
+  # user = User.query.filter((User.id == user_id)).first()
+  for key, value in user.items():
+    print(f"Key: {key}, Value: {value}")
+
+  user_id = user.get('id')
+  user_name = user.get('username')
 
   input_filename = process_audio(audio_blob, user_id)
   transcribed_text = transcribe_audio_to_english(input_filename, user_id)
   os.remove(input_filename)
-  print(f"Transcribed text for {user.username}: ", transcribed_text)
+  print(f"Transcribed text for {user_name}: ", transcribed_text)
 
   translated_text = translate_text(transcribed_text, user.language, user_id)
-  print(f"translated text for {user.username}: ", translate_text)
+  print(f"translated text for {user_name}: ", translate_text)
 
   # Update context of the transcribed text of the user
   # previous_transcribes[user_id] = transcribed_text
