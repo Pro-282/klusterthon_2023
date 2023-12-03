@@ -11,7 +11,8 @@ def transcribe_audio_to_english(audio_file_name, user_id):
     model="whisper-1", 
     file=file,
     response_format="text",
-    prompt=f"Translate this audio to English. This is the translations of the preceding segments of the audio: {previous_transcribes.get(user_id, '')}",
+    # prompt=f"Translate this audio to English, this is the translations of the preceding segments of the audio: {previous_transcribes.get(user_id, '')}",
+    prompt=str(previous_transcribes.get(user_id, '')),
     temperature=0
   )
   # Return the transcribed text
