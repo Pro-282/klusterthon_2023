@@ -5,7 +5,7 @@ import jwt
 from app.users.models import User
 from services.ffmpeg import process_audio
 from services.openai import previous_transcribes, transcribe_audio_to_english, translate_text
-import os
+import os, threading
 
 socket_blueprint = Blueprint('socket', __name__)
 
@@ -30,20 +30,20 @@ def handle_connect():
 
   emit('connected', {'message': f"{user.username} has connected!", 'user_id': str(user.id)}, to=request.sid)
 
-@socketio.on("disconnect")
-def disconnected():
-  user_id = get_user_id_from_session_id(request.sid)
-  user = User.query.filter((User.id == user_id)).first()
+# @socketio.on("disconnect")
+# def disconnected():
+#   user_id = get_user_id_from_session_id(request.sid)
+#   user = User.query.filter((User.id == user_id)).first()
   
-  user.is_online = False
-  user.peer_id = ""
-  db.session.commit()
+#   user.is_online = False
+#   user.peer_id = ""
+#   db.session.commit()
 
-  connected_users.pop(user_id, None)
+#   connected_users.pop(user_id, None)
 
-  emit("disconnected", {'message': f"{user.username} has disconnected!", 'user_id': str(user.id)}, to=request.sid)
+#   emit("disconnected", {'message': f"{user.username} has disconnected!", 'user_id': str(user.id)}, to=request.sid)
 
-  emit("user_online", {'message': f"{user.username} is offline", 'user_id': str(user.id)})
+#   emit("user_online", {'message': f"{user.username} is offline", 'user_id': str(user.id)})
 
 @socketio.on('peer_id')
 def handle_user_peer(peer_id):
@@ -108,32 +108,24 @@ def handle_user_offline():
 #     #todo: if no send an error to the client(to destroy the call and start again)
 #     pass
 
+
 @socketio.on('audio_chunks')
 def handle_audio_blobs(blob, user):
-  audio_blob = blob
-  # user_id = get_user_id_from_session_id(request.sid)
-  # user = User.query.filter((User.id == user_id)).first()
-  for key, value in user.items():
-    print(f"Key: {key}, Value: {value}")
-
   user_id = user.get('id')
-  user_name = user.get('username')
+  # user_name = user.get('username')
   user_language = user.get('language')
+  session_id = request.sid  # Capture the session ID
+  socketio.start_background_task(process_audio_transcribe_and_translate, blob, user_id, user_language, session_id)
 
-  input_filename = process_audio(audio_blob, user_id)
+def process_audio_transcribe_and_translate(blob, user_id, user_language, session_id):
+  # with app.app_context():
+  input_filename = process_audio(blob, user_id)
   transcribed_text = transcribe_audio_to_english(input_filename, user_id)
   os.remove(input_filename)
-  print(f"Transcribed text for {user_name}: ", transcribed_text)
 
   translated_text = translate_text(transcribed_text, user_language, user_id)
-  print(f"translated text for {user_name}: ", translate_text)
-
-  # Update context of the transcribed text of the user
-  # previous_transcribes[user_id] = transcribed_text
-
-  emit('translated_text', translated_text, to=request.sid)
-
-  # os.remove(output_filename)
+  print(translated_text)
+  socketio.emit('translated_text', translated_text, namespace='/', to=session_id)
 
 
 @socketio.on('end_call')

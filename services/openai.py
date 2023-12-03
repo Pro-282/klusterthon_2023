@@ -1,9 +1,11 @@
 from openai import OpenAI
 import os
+from threading import Lock
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 previous_transcribes = {}
+transcribes_lock = Lock()
 
 def transcribe_audio_to_english(audio_file_name, user_id):
   try:
@@ -13,7 +15,7 @@ def transcribe_audio_to_english(audio_file_name, user_id):
       file=file,
       response_format="text",
       # prompt=f"Translate this audio to English, this is the translations of the preceding segments of the audio: {previous_transcribes.get(user_id, '')}",
-      # prompt=str(previous_transcribes.get(user_id, '')),
+      prompt=str(previous_transcribes.get(user_id, '')),
       temperature=0
     )
   except Exception as e:
@@ -23,19 +25,21 @@ def transcribe_audio_to_english(audio_file_name, user_id):
 
 def translate_text(text, target_language, user_id, context=True):
   try:
-    # if context:
-    #   if user_id in previous_transcribes:
-    #     previous_text = previous_transcribes[user_id]
-    #     # Combine context with new text
-    #     combined_text = previous_text + " " + text
-    #   else:
-    #     combined_text = text
+    combined_text = text
+    if context:
+      with transcribes_lock:
+        if user_id in previous_transcribes:
+          combined_text = previous_transcribes[user_id] + " " + text
         
-    # print(combined_text)
+     # Update the dictionary within the lock
+    with transcribes_lock:
+      previous_transcribes[user_id] = combined_text
+    print(combined_text)
+    
     response = client.chat.completions.create(
       model="gpt-3.5-turbo",
       messages=[
-        {"role": "user", "content": f'Translate the following English text to {target_language}: "{text}"'}
+        {"role": "user", "content": f'Translate the following English text to {target_language}: "{combined_text}"'}
       ],
       temperature=0
     )
