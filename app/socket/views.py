@@ -116,6 +116,7 @@ def handle_audio_blobs(blob):
 
   input_filename = process_audio(audio_blob, user_id)
   transcribed_text = transcribe_audio_to_english(input_filename, user_id)
+  os.remove(input_filename)
 
   translated_text = translate_text(transcribed_text, user.language, user_id)
 
@@ -124,7 +125,6 @@ def handle_audio_blobs(blob):
 
   emit('translated_text', translated_text, to=request.sid)
 
-  os.remove(input_filename)
   # os.remove(output_filename)
 
 
